@@ -17,6 +17,7 @@
     "clsx": "latest",
     "firebase": "^7.3.0",
     "markdown-to-jsx": "^6.10.3",
+    "msgpack": "^1.0.3",
     "react": "latest",
     "react-dom": "latest",
     "react-scripts": "latest"

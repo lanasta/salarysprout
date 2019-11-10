@@ -3,7 +3,6 @@ import {useEffect, useRef} from 'react';
 import algosdk from 'algosdk';
 import { makeStyles } from '@material-ui/core/styles';
 import CssBaseline from '@material-ui/core/CssBaseline';
-import { axios } from './base';
 import Button from '@material-ui/core/Button';
 import InputLabel from '@material-ui/core/InputLabel';
 import MenuItem from '@material-ui/core/MenuItem';
@@ -26,9 +25,6 @@ import Divider from '@material-ui/core/Divider';
 import Container from '@material-ui/core/Container';
 import Markdown from './Markdown';
 import TextField from '@material-ui/core/TextField';
-import post1 from './blog-post.1.md';
-import post2 from './blog-post.2.md';
-import post3 from './blog-post.3.md';
 import '../css/style.css'; // Tell Webpack that Button.js uses these styles
 import { blockStatement } from '@babel/types';
 
@@ -39,7 +35,18 @@ export default function UserProfile(props) {
   let [userData, setUserData] = React.useState({});
   let [mnemonicBox, setMnemonicBox] = React.useState(false);
   let [mnemonic, setMnemonic] = React.useState('');
+  let [txIdMsg, setTxIdMsg] = React.useState(null);
 
+  const algod_address = "http://hackathon.algodev.network";               
+  const algod_token = "ef920e2e7e002953f4b29a8af720efe8e4ecc75ff102b165e0472834b25832c1";
+  const algod_client = new algosdk.Algod(algod_token, algod_address, "9100");
+  let algod_status = null;
+
+  (async () => {
+    algod_status = await algod_client.status();
+  })().catch(e => {
+      console.log(e);
+  });
 
   console.log(user);
   const keyWordsMap = {
@@ -95,7 +102,6 @@ export default function UserProfile(props) {
           console.log(keyWordsMap[a], data[a]);
           jsx.push(<span className='profileEntry' key={a}>{keyWordsMap[a]} : <b>{data[a]}</b>  <br></br></span>)
         }
-
       }
       setProfileJsx(jsx);
       renderAnalysis();
@@ -137,26 +143,43 @@ export default function UserProfile(props) {
 
   const algoexplorerUrl = "https://testnet.algoexplorer.io/address/" + userData.accountAddress;
 
-  async function reportSalaryToBlockchain() {
-    const objToSend = {
-      "position" : userData.position,
-      "yearsOfExperience" : userData.yoe,
-      "gender" : userData.gender,
-      "salary" : userData.salary
+  function stringToUint(string) {
+    var string = btoa(unescape(encodeURIComponent(string))),
+        charList = string.split(''),
+        uintArray = [];
+    for (var i = 0; i < charList.length; i++) {
+        uintArray.push(charList[i].charCodeAt(0));
     }
+    return new Uint8Array(uintArray);
+}
+
+  async function reportSalaryToBlockchain() {
+    let objToSend = {
+      "gender:" : stringToUint(userData.gender),
+       "position:" : stringToUint(userData.position),
+       "salary:": stringToUint(userData.salary),
+      "yearsOfExperience": stringToUint(userData.yoe)
+    } 
     var secret_key = algosdk.mnemonicToSecretKey(mnemonic);
+    let params = await algod_client.getTransactionParams();
+    let endRound = params.lastRound + parseInt(1000);
     const txn = { 
       "to": "43DYQRD5K5QWVUALPG25XHT5KR3FXUUBX3MABK7CVFMZEMIZAL5WRRIFMI",
       "fee": 0,
-      "amount": 100000,
-      "firstRound": 51,
-      "lastRound": 61,
-      "genesisID": "devnet-v33.0",
-      "genesisHash": "JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=",
+      "amount": 1000,
+      "firstRound": params.lastRound,
+      "lastRound": endRound,
+      "genesisID": params.genesisID,
+      "genesisHash": params.genesishashb64,
       "closeRemainderTo": "IDUTJEUIEVSMXTU4LGTJWZ2UE2E6TIODUKU6UW3FU3UKIQQ77RLUBBBFLA",
       "note": algosdk.encodeObj(objToSend)
     };
     var signedTxn = algosdk.signTransaction(txn, secret_key.sk);
+    let tx = (await algod_client.sendRawTransaction(signedTxn.blob));
+    if (tx.txId) {
+      setTxIdMsg(<>Transaction sent. Transaction ID: {tx.txId}</>)
+    }
+    console.log("Transaction : " + tx.txId);
   }
 
   return (
@@ -191,7 +214,10 @@ export default function UserProfile(props) {
                                   <Button className='app-button' onClick={() => { }
                                 }  variant="contained" color="primary"  onClick={() => { reportSalaryToBlockchain()}} className={classes.button}> Submit</Button>&nbsp;&nbsp;&nbsp;
                                 <Button className='app-button' onClick={() => { setMnemonicBox(false)}
-                                                        }  variant="contained" color="primary" className={classes.button}> Cancel</Button></>
+                                                        }  variant="contained" color="primary" className={classes.button}> Cancel</Button>
+                                                        <div className='margintop2'>{txIdMsg}</div>
+                                                        </>
+                                
                               )}
                               </div>
                         </div>
