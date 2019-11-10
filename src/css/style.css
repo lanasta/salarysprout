@@ -1,21 +1,20 @@
-@import url('https://fonts.googleapis.com/css?family=Rubik+Montserrat:400,400i,700&display=swap');
-
 body {
     font-family: "Rubik", "Helvetica", "Arial", sans-serif;
+    color: #423B42;
 }
 
 .app-intro {
     width: 100%;
     padding: 3em 6em;
-    min-height: 300px;
+    min-height: 200px;
     background-image: url("../components/background.jpg");
     background-size: cover;
-    background-position-y: 65%;
+    background-position-y: 61%;
     background-repeat: no-repeat;
 }
 
 .app-logo {
-    color: forestgreen;
+    color:#65ada6;
     font-family: 'Montserrat', 'Roboto', sans-serif;
     font-size: 2em;
     text-align: center;
@@ -58,9 +57,30 @@ body {
     margin: 1em 0;
 }
 
+.signUp-feedback {
+    font-weight: 500;
+    font-size: 1.3em;
+    width: 100%;
+    word-break: break-word;
+    position: relative;
+}
+
+.positiveFeedback {
+    color: forestgreen;
+}
+
+.negativeFeedback {
+    color: maroon;
+}
+
 .MuiFormControl-root {
     width: 400px;
 }
 
+.MuiButton-containedPrimary {
+    background-color: #8d99d4;
+}
 
-
+.MuiButton-label {
+    color: white;
+}

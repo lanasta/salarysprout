@@ -1,6 +1,9 @@
 import React from 'react';
+import {useEffect, useRef} from 'react';
+import algosdk from 'algosdk';
 import { makeStyles } from '@material-ui/core/styles';
 import CssBaseline from '@material-ui/core/CssBaseline';
+import { fbase } from './base';
 import Button from '@material-ui/core/Button';
 import InputLabel from '@material-ui/core/InputLabel';
 import MenuItem from '@material-ui/core/MenuItem';
@@ -29,21 +32,7 @@ import post3 from './blog-post.3.md';
 import '../css/style.css'; // Tell Webpack that Button.js uses these styles
 import { blockStatement } from '@babel/types';
 
-
-
-function Copyright() {
-  return (
-    <Typography variant="body2" color="textSecondary" align="center">
-      {'Copyright © '}
-      <Link color="inherit" href="https://material-ui.com/">
-        Your Website
-      </Link>{' '}
-      {new Date().getFullYear()}
-      {'.'}
-    </Typography>
-  );
-}
-
+const db = fbase.firestore();
 const useStyles = makeStyles(theme => ({
   formControl : {
     display: 'block',
@@ -152,20 +141,129 @@ const archives = [
 
 const social = ['GitHub', 'Twitter', 'Facebook'];
 
+async function createUser(email, password, newUserData) {
+    console.log(email, password);
+    let feedback = {};
+    await fbase.auth().createUserWithEmailAndPassword(email, password).then(() => {
+        var keys = algosdk.generateAccount();
+        var mnemonic = algosdk.secretKeyToMnemonic(keys.sk);
+        newUserData.accountAddress = keys.addr;
+        addUserToDatabase(newUserData);
+        feedback = {"accountAddress": keys.addr, "privateKey": mnemonic};
+    }).catch(function(error) {
+        // Handle Errors here.
+        var errorCode = error.code;
+        var errorMessage = error.message;
+        console.log(errorMessage);
+        feedback = {"errorMessage" : errorMessage};
+      });
+    return feedback;
+}
+
+function addUserToDatabase(newUserData) {
+    const userRef = db.collection("users");  
+    userRef.doc((newUserData.email).split(".").join("")).set(newUserData);
+}
+
+function userSignIn(email, password) {
+    fbase.auth().signInWithEmailAndPassword(email, password).catch(function(error) {
+        // Handle Errors here.
+        var errorCode = error.code;
+        var errorMessage = error.message;
+        console.log(errorMessage);
+      });
+}
+
+function isUserSignedIn(){
+    fbase.auth().onAuthStateChanged(function(user) {
+        if (user) {
+          return true;
+        } else {
+          return false;
+        }
+      });
+}
+
 export default function Blog() {
   const classes = useStyles();
-  const [age, setAge] = React.useState('');
+  const [email, setEmail] = React.useState('');
+  const [name, setName] = React.useState('');
+  const [password, setPassword] = React.useState('');
+  const [password2, setPassword2] = React.useState('');
+  const [company, setCompany] = React.useState('');
+  const [yoe, setYoe] = React.useState('');
+  const [gender, setGender] = React.useState('');
+  const [phone, setPhone] = React.useState('');
+  const [position, setPosition] = React.useState('');
+  const [salary, setSalary] = React.useState('');
+  const [signUpEnabled, setSignUpEnabled] = React.useState(false);
 
-  const handleChange = event => {
-    setAge(event.target.value);
+  const [signUpFeedback, setSignUpFeedback] = React.useState(null);
+
+  const [siEmail, setSiEmail] = React.useState('');
+  const [siPassword, setSiPassword] = React.useState('');
+  const [signInEnabled, setSignInEnabled] = React.useState(false);
+
+  const [signedIn, setSignedIn] = React.useState(false);
+
+  const mounted = useRef();
+    useEffect(() => {
+    if (!mounted.current) {
+        mounted.current = true;
+    } else {
+        setSignUpButtonState();
+        setSignInButtonState();  
+        setSignedIn(isUserSignedIn());
+    }
+    });
+
+
+  const setSignUpButtonState = () => {
+    if (!signInEnabled && password != '' && password == password2 && email != '' && name != '' && company != ''
+    && yoe != '' && gender != '' && phone != '' && position != '' && salary != '') {
+        setSignUpEnabled(true);
+    } else {
+        setSignUpEnabled(false);
+    }
   };
+
+  const setSignInButtonState = () => {
+    if (siPassword != '' && siEmail != '' && !signUpEnabled) {
+        setSignInEnabled(true);
+    } else {
+        setSignInEnabled(false);
+    }
+  };
+
+  const createUserAndSendFeedback = async () => {
+    const newUserData = {
+        "email" : email,
+        "name" : name,
+        "company" : company,
+        "yoe" : yoe,
+        "gender" : gender,
+        "phone" : phone,
+        "position" : position,
+        "salary": salary
+    }
+    const feedbackObj = await createUser(email, password, newUserData);
+    console.log(feedbackObj);
+    const {accountAddress ='', privateKey = '', errorMessage = null} = feedbackObj;
+    if (errorMessage) {
+        setSignUpFeedback(<><span className='negativeFeedback'>{errorMessage}</span></>);
+    } else {
+        setSignUpFeedback(<span className='positiveFeedback'>Success! Your account address is {accountAddress}. Please copy and save this mnemonic phrase as this is the last time you will have access to it. You will need it to sign transactions in the future :
+            &nbsp;{privateKey}</span>);
+        setSignUpEnabled(false);
+    }
+  }
 
   return (
     <React.Fragment>
       <CssBaseline />
       <Container maxWidth="lg">
           <div className="app-logo">
-            salarysprout<i class="fas fa-leaf"></i>
+            salarysprout<i className="fas fa-leaf"></i>
           </div>
         <main>
           {/* Main featured post */}
@@ -180,7 +278,7 @@ export default function Blog() {
             }
             <div />
             <Grid container className="app-intro">
-              <Grid md={6} >
+              <Grid >
                 <div className='app-slogan'>
                 </div>
               </Grid>
@@ -189,7 +287,7 @@ export default function Blog() {
           {/* End main featured post */}
           {/* Sub featured posts */}
           <Grid container spacing={4}>
-              <><Grid item key="waa" xs={12} md={6}>
+              <><Grid item key="signUp" xs={12} md={6}>
                   <Card className={classes.card}>
                     <div className={classes.cardDetails}>
                         <div className="app-box">
@@ -201,7 +299,56 @@ export default function Blog() {
                         <TextField
                             required
                             id="outlined-required"
+                            label="E-mail"
+                            onChange={(event) => {
+                                setEmail(event.target.value);
+                            }}
+                            className={classes.textField}
+                            margin="normal"
+                            variant="outlined"
+                            />
+                        <TextField
+                            required
+                            id="outlined-required"
                             label="Name"
+                            onChange={(event) => {
+                                setName(event.target.value);
+                            }}
+                            className={classes.textField}
+                            margin="normal"
+                            variant="outlined"
+                            />
+                        <TextField
+                            id="filled-password-input"
+                            label="Password (min 6 characters)"
+                            onChange={(event) => {
+                                setPassword(event.target.value);
+                            }}
+                            className={classes.textField}
+                            type="password"
+                            autoComplete="current-password"
+                            margin="normal"
+                            variant="outlined"
+                            />  
+                        <TextField
+                            id="filled-password-input"
+                            label="Confirm Password (min 6 characters)"
+                            className={classes.textField}
+                            onChange={(event) => {
+                                setPassword2(event.target.value);
+                            }}
+                            type="password"
+                            autoComplete="current-password"
+                            margin="normal"
+                            variant="outlined"
+                            />  
+                        <TextField
+                            required
+                            id="outlined-required"
+                            label="Phone Number"
+                            onChange={(event) => {
+                                setPhone(event.target.value);
+                            }}
                             className={classes.textField}
                             margin="normal"
                             variant="outlined"
@@ -210,6 +357,9 @@ export default function Blog() {
                             required
                             id="outlined-required"
                             label="Company"
+                            onChange={(event) => {
+                                setCompany(event.target.value);
+                            }}
                             className={classes.textField}
                             margin="normal"
                             variant="outlined"
@@ -218,6 +368,9 @@ export default function Blog() {
                             required
                             id="outlined-required"
                             label="Position"
+                            onChange={(event) => {
+                                setPosition(event.target.value);
+                            }}
                             className={classes.textField}
                             margin="normal"
                             variant="outlined"
@@ -226,6 +379,9 @@ export default function Blog() {
                             required
                             id="outlined-required"
                             label="Gender"
+                            onChange={(event) => {
+                                setGender(event.target.value);
+                            }}
                             className={classes.textField}
                             margin="normal"
                             variant="outlined"
@@ -233,6 +389,9 @@ export default function Blog() {
                         <TextField
                             required
                             id="outlined-required"
+                            onChange={(event) => {
+                                setYoe(event.target.value);
+                            }}
                             label="Years of Experience"
                             className={classes.textField}
                             margin="normal"
@@ -241,13 +400,21 @@ export default function Blog() {
                         <TextField
                             required
                             id="outlined-required"
-                            label="Salary"
+                            label="Salary ($/year)"
+                            onChange={(event) => {
+                                setSalary(event.target.value);
+                            }}
                             className={classes.textField}
                             margin="normal"
                             variant="outlined"
                             />
-                            <Button className='app-button' variant="contained" color="primary" className={classes.button}> Sign up</Button>
-                              </div>
+                            <Button className='app-button' onClick={() => {
+                                                                createUserAndSendFeedback()
+                                                            }
+                                                        }  variant="contained" disabled={!signUpEnabled} color="primary" className={classes.button}> Sign up</Button>
+                            {signUpFeedback ?
+                            <div className={`app-box-blurb signUp-feedback`}>{signUpFeedback}</div> : null}
+                            </div>
                     </div>
                     <Hidden xsDown>
                       <CardMedia
@@ -258,22 +425,52 @@ export default function Blog() {
                     </Hidden>
                   </Card>
               </Grid>
-              <Grid item key="woo" xs={12} md={6}>
-              <CardActionArea component="a" href="#">
-                <Card className={classes.card}>
-                  <div className={classes.cardDetails}>
-                    <input type='text'></input>
-                  </div>
-                  <Hidden xsDown>
-                    <CardMedia
-                      className={classes.cardMedia}
-                      image="https://unsplash.com/photos/dZxQn4VEv2M"
-                      title="Image title"
-                    />
-                  </Hidden>
-                </Card>
-              </CardActionArea>
-            </Grid></>
+              <Grid item key="signIn" xs={12} md={6}>
+                  <Card className={classes.card}>
+                    <div className={classes.cardDetails}>
+                        <div className="app-box">
+                            <div className='app-box-title'>Sign In</div>
+                        <TextField
+                            required
+                            id="outlined-required"
+                            label="E-mail"
+                            onChange={(event) => {
+                                setSiEmail(event.target.value);
+                            }}
+                            className={classes.textField}
+                            margin="normal"
+                            variant="outlined"
+                            />
+                        <TextField
+                            id="filled-password-input"
+                            label="Password"
+                            onChange={(event) => {
+                                setSiPassword(event.target.value);
+                            }}
+                            className={classes.textField}
+                            type="password"
+                            autoComplete="current-password"
+                            margin="normal"
+                            variant="outlined"
+                            />  
+                        <Button className='app-button' disabled={!signInEnabled} 
+                                                        onClick={() => {
+                                                            userSignIn(siEmail, siPassword)
+                                                            }
+                                                        } 
+                                                        variant="contained" 
+                                                        color="primary" className={classes.button}>Sign in</Button>
+                        </div>
+                    </div>
+                    <Hidden xsDown>
+                      <CardMedia
+                        className={classes.cardMedia}
+                        image="https://unsplash.com/photos/dZxQn4VEv2M"
+                        title="Image title"
+                      />
+                    </Hidden>
+                  </Card>
+              </Grid></>
           </Grid>
           {/* End sub featured posts */}
         </main>
@@ -282,7 +479,7 @@ export default function Blog() {
       <footer className={classes.footer}>
         <Container maxWidth="lg">
           <Typography variant="subtitle1" align="center" color="textSecondary" component="p">
-            Built by Anastasia, Angelina, Arfa and Sam at Technica 2019
+            Built by Anastasia, Angelina, Arfa and Sam at Technica 2019 🚀
           </Typography>
         </Container>
       </footer>
