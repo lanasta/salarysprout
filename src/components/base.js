@@ -1,5 +1,7 @@
 
 import firebase from 'firebase';
+import cheerio from 'cheerio';
+import axios from 'axios';
 
 var firebaseConfig = {
     apiKey: "AIzaSyAbW5KJaKC8j1aVNHuRjoVtNGn85_dQEJY",
@@ -13,4 +15,4 @@ var firebaseConfig = {
   // Initialize Firebase
   const fbase = firebase.initializeApp(firebaseConfig);
 
-  export { fbase }
+  export { fbase, cheerio, axios }

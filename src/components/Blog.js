@@ -3,7 +3,8 @@ import {useEffect, useRef} from 'react';
 import algosdk from 'algosdk';
 import { makeStyles } from '@material-ui/core/styles';
 import CssBaseline from '@material-ui/core/CssBaseline';
-import { fbase } from './base';
+import { fbase, cheerio } from './base';
+import UserProfile from './UserProfile';
 import Button from '@material-ui/core/Button';
 import InputLabel from '@material-ui/core/InputLabel';
 import MenuItem from '@material-ui/core/MenuItem';
@@ -103,44 +104,6 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-
-const sections = [
-];
-
-const featuredPosts = [
-  {
-    title: 'Featured post',
-    date: 'Nov 12',
-    description:
-      'This is a wider card with supporting text below as a natural lead-in to additional content.',
-  },
-  {
-    title: 'Post title',
-    date: 'Nov 11',
-    description:
-      'This is a wider card with supporting text below as a natural lead-in to additional content.',
-  },
-];
-
-const posts = [post1, post2, post3];
-
-const archives = [
-  'March 2020',
-  'February 2020',
-  'January 2020',
-  'December 2019',
-  'November 2019',
-  'October 2019',
-  'September 2019',
-  'August 2019',
-  'July 2019',
-  'June 2019',
-  'May 2019',
-  'April 2019',
-];
-
-const social = ['GitHub', 'Twitter', 'Facebook'];
-
 async function createUser(email, password, newUserData) {
     console.log(email, password);
     let feedback = {};
@@ -165,23 +128,17 @@ function addUserToDatabase(newUserData) {
     userRef.doc((newUserData.email).split(".").join("")).set(newUserData);
 }
 
-function userSignIn(email, password) {
-    fbase.auth().signInWithEmailAndPassword(email, password).catch(function(error) {
+async function userSignIn(email, password) {
+    let feedback = {};
+    await fbase.auth().signInWithEmailAndPassword(email, password).then(()=> {
+    }).catch(function(error) {
         // Handle Errors here.
         var errorCode = error.code;
         var errorMessage = error.message;
         console.log(errorMessage);
+        feedback = {"errorMessage" : errorMessage};
       });
-}
-
-function isUserSignedIn(){
-    fbase.auth().onAuthStateChanged(function(user) {
-        if (user) {
-          return true;
-        } else {
-          return false;
-        }
-      });
+    return feedback;
 }
 
 export default function Blog() {
@@ -198,25 +155,39 @@ export default function Blog() {
   const [salary, setSalary] = React.useState('');
   const [signUpEnabled, setSignUpEnabled] = React.useState(false);
 
+  const [signInFeedback, setSignInFeedback] = React.useState(null);
   const [signUpFeedback, setSignUpFeedback] = React.useState(null);
 
   const [siEmail, setSiEmail] = React.useState('');
   const [siPassword, setSiPassword] = React.useState('');
   const [signInEnabled, setSignInEnabled] = React.useState(false);
 
-  const [signedIn, setSignedIn] = React.useState(false);
+  const [signedIn, setSignedIn] = React.useState(true);
+
+  const [activeUser, setActiveUser] = React.useState(null);
 
   const mounted = useRef();
     useEffect(() => {
-    if (!mounted.current) {
-        mounted.current = true;
-    } else {
-        setSignUpButtonState();
-        setSignInButtonState();  
-        setSignedIn(isUserSignedIn());
-    }
+        isUserSignedIn();
+        if (!mounted.current) {
+            mounted.current = true;
+        } else {
+            setSignUpButtonState();
+            setSignInButtonState();  
+        }
     });
 
+
+function isUserSignedIn(){
+    fbase.auth().onAuthStateChanged(function(user) {
+        if (user) {
+         setActiveUser(user);
+         setSignedIn(true);
+        } else {
+          setSignedIn(false);
+        }
+      });
+}
 
   const setSignUpButtonState = () => {
     if (!signInEnabled && password != '' && password == password2 && email != '' && name != '' && company != ''
@@ -244,7 +215,8 @@ export default function Blog() {
         "gender" : gender,
         "phone" : phone,
         "position" : position,
-        "salary": salary
+        "salary": salary,
+        "onchain": false
     }
     const feedbackObj = await createUser(email, password, newUserData);
     console.log(feedbackObj);
@@ -256,6 +228,17 @@ export default function Blog() {
             &nbsp;{privateKey}</span>);
         setSignUpEnabled(false);
     }
+  }
+
+  const signInUser = async() => {
+      const userSignedIn = await userSignIn(siEmail, siPassword);
+      const { errorMessage = null } = userSignedIn;
+      console.log(userSignedIn);
+      if (errorMessage) {
+        setSignInFeedback(<><span className='negativeFeedback'>{errorMessage}</span></>);
+      } else {
+        setSignInFeedback(null);
+      }
   }
 
   return (
@@ -286,7 +269,7 @@ export default function Blog() {
           </Paper>
           {/* End main featured post */}
           {/* Sub featured posts */}
-          <Grid container spacing={4}>
+          { (!signedIn || signUpFeedback) ? <><Grid container spacing={4}>
               <><Grid item key="signUp" xs={12} md={6}>
                   <Card className={classes.card}>
                     <div className={classes.cardDetails}>
@@ -294,7 +277,7 @@ export default function Blog() {
                             <div className='app-box-title'>Sign Up</div>
                             <div className='app-box-blurb'>When you sign up for an account, an account 
                             address and a private key in the form of a mnemonic phrase will be generated for you. Please keep your private key
-                            safe and sound as we do not keep your private key, and 
+                            safe and sound as we do not store it anywhere, and 
                             this will be the only time that you will see it. </div>
                         <TextField
                             required
@@ -425,7 +408,7 @@ export default function Blog() {
                     </Hidden>
                   </Card>
               </Grid>
-              <Grid item key="signIn" xs={12} md={6}>
+              {!signedIn ? <><Grid item key="signIn" xs={12} md={6}>
                   <Card className={classes.card}>
                     <div className={classes.cardDetails}>
                         <div className="app-box">
@@ -455,11 +438,13 @@ export default function Blog() {
                             />  
                         <Button className='app-button' disabled={!signInEnabled} 
                                                         onClick={() => {
-                                                            userSignIn(siEmail, siPassword)
+                                                            signInUser();
                                                             }
                                                         } 
                                                         variant="contained" 
                                                         color="primary" className={classes.button}>Sign in</Button>
+                        {signInFeedback ?
+                            <div className={`app-box-blurb signUp-feedback`}>{signInFeedback}</div> : null}
                         </div>
                     </div>
                     <Hidden xsDown>
@@ -470,8 +455,8 @@ export default function Blog() {
                       />
                     </Hidden>
                   </Card>
-              </Grid></>
-          </Grid>
+                                                    </Grid></> : null}</>
+          </Grid></> : (activeUser && <UserProfile classes={classes} db={db} cheerio={cheerio} user={activeUser}></UserProfile>) }
           {/* End sub featured posts */}
         </main>
       </Container>

@@ -35,6 +35,11 @@ body {
     min-height: 200px;
 }
 
+.app-button{
+    padding-right: 1em;
+    margin-right: 1em;
+}
+
 .app-box-title {
     text-transform: uppercase;
     letter-spacing: 1px;
@@ -83,4 +88,27 @@ body {
 
 .MuiButton-label {
     color: white;
+}
+
+.app-box-content {
+    margin: 1em 0;
+    padding: 1em 0;
+    font-size: 1.15em;
+    word-wrap: break-word;
+    word-break: break-all;
+}
+
+.no-word-break {
+    word-break: normal;
+}
+
+.margin-right {
+    margin-right: 2em;
+}
+
+.margintop2  {
+    padding-top: 0.5em;
+    position: relative;
+    word-break: normal;
+    display: block;
 }
