@@ -104,6 +104,14 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
+async function signOut() {
+    fbase.auth().signOut().then(function() {
+        
+      }).catch(function(error) {
+        // An error happened.
+      });
+}
+
 async function createUser(email, password, newUserData) {
     console.log(email, password);
     let feedback = {};
@@ -248,6 +256,7 @@ function isUserSignedIn(){
           <div className="app-logo">
             salarysprout<i className="fas fa-leaf"></i>
           </div>
+          {signedIn == true && <div className='signoutButton'><i className='fas fa-sign-out' onClick={()=>{signOut()}}></i></div>}
         <main>
           {/* Main featured post */}
           <Paper className={classes.mainFeaturedPost}>
