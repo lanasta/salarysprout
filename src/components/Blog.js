@@ -241,11 +241,13 @@ function isUserSignedIn(){
   const signInUser = async() => {
       const userSignedIn = await userSignIn(siEmail, siPassword);
       const { errorMessage = null } = userSignedIn;
-      console.log(userSignedIn);
       if (errorMessage) {
         setSignInFeedback(<><span className='negativeFeedback'>{errorMessage}</span></>);
       } else {
         setSignInFeedback(null);
+      }
+      if (signUpFeedback && userSignedIn) {
+          window.location.reload();
       }
   }
 
@@ -417,7 +419,7 @@ function isUserSignedIn(){
                     </Hidden>
                   </Card>
               </Grid>
-              {!signedIn ? <><Grid item key="signIn" xs={12} md={6}>
+              {!signedIn || signUpFeedback ? <><Grid item key="signIn" xs={12} md={6}>
                   <Card className={classes.card}>
                     <div className={classes.cardDetails}>
                         <div className="app-box">
@@ -445,7 +447,7 @@ function isUserSignedIn(){
                             margin="normal"
                             variant="outlined"
                             />  
-                        <Button className='app-button' disabled={!signInEnabled} 
+                        <Button className='app-button' disabled={!signInEnabled && !signUpFeedback} 
                                                         onClick={() => {
                                                             signInUser();
                                                             }

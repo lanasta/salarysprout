@@ -111,7 +111,7 @@ export default function UserProfile(props) {
     const jsx = [];
     const absDiff = Math.abs(salary - avgSalary);
     const more = (salary - avgSalary) > 0;
-    jsx.push(<>You are making <b>${absDiff}</b> {more ? 'more' : 'less'} than the average {avgSalaries[position.toLowerCase()] ? position.toLowerCase() : 'worker'} in the United States. </>);
+    jsx.push(<>You are making <b>${absDiff}</b> {more ? 'more' : 'less'} than what an average {avgSalaries[position.toLowerCase()] ? position.toLowerCase() : 'worker'} makes in the United States. </>);
     if (!more) {
       if (yoe >=2 && yoe < 3) {
         jsx.push(<>Given your years of experience, you should aim for a promotion and a raise soon if circumstances permit. </>);
@@ -168,8 +168,8 @@ export default function UserProfile(props) {
                               <div className='app-box-content'>{profileJsx}
                               {(!mnemonicBox && user && !user.onchain) ?  <>
                               <div className='margintop2'>Sharing your salary is anonymous on the Algorand blockchain as long as you do not reveal your account address to anyone.
-                                 Only the following fields will be shared: your gender, your position and your years of experience. Sharing your salary will help promote wage equality, and help
-                                  others with their job decisions.
+                                 Only the following fields will be shared: your gender, position, years of experience, and salary. Sharing your salary will help promote wage equality, and help
+                                  others with making their job decisions.
                               </div>
                               <Button className='app-button' onClick={() => { setMnemonicBox(true)}
                                                         }  variant="contained" color="primary" className={classes.button}> Share your salary on-chain</Button></> : null}
