@@ -258,11 +258,12 @@ function isUserSignedIn(){
               />
             }
             <div />
-            <Grid container className="app-intro">
-              <Grid >
-                <div className='app-slogan'>
+            <Grid container >
+                <div className="app-intro">
                 </div>
-              </Grid>
+                <div className='app-slogan'>
+                    Help close the gender pay gap and make wage data more accessible by anonymously contributing your salary information on a public blockchain.
+                </div>
             </Grid>
           </Paper>
           {/* End main featured post */}
