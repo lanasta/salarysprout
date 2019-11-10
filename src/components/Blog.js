@@ -463,7 +463,7 @@ function isUserSignedIn(){
       <footer className={classes.footer}>
         <Container maxWidth="lg">
           <Typography variant="subtitle1" align="center" color="textSecondary" component="p">
-            Built by Anastasia, Angelina, Arfa and Sam at Technica 2019 🚀
+            Built by Anastasia, Angeline, Arfa and Sam at Technica 2019 🚀
           </Typography>
         </Container>
       </footer>
