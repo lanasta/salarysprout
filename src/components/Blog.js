@@ -20,6 +20,9 @@ import Markdown from './Markdown';
 import post1 from './blog-post.1.md';
 import post2 from './blog-post.2.md';
 import post3 from './blog-post.3.md';
+import '../css/style.css'; // Tell Webpack that Button.js uses these styles
+
+
 
 function Copyright() {
   return (
@@ -54,18 +57,10 @@ const useStyles = makeStyles(theme => ({
     backgroundColor: theme.palette.grey[800],
     color: theme.palette.common.white,
     marginBottom: theme.spacing(4),
-    backgroundImage: 'url(https://source.unsplash.com/user/erondu)',
+    backgroundImage: 'url(https://unsplash.com/photos/dZxQn4VEv2M)',
     backgroundSize: 'cover',
     backgroundRepeat: 'no-repeat',
     backgroundPosition: 'center',
-  },
-  overlay: {
-    position: 'absolute',
-    top: 0,
-    bottom: 0,
-    right: 0,
-    left: 0,
-    backgroundColor: 'rgba(0,0,0,.3)',
   },
   mainFeaturedPostContent: {
     position: 'relative',
@@ -106,16 +101,6 @@ const useStyles = makeStyles(theme => ({
 }));
 
 const sections = [
-  'Technology',
-  'Design',
-  'Culture',
-  'Business',
-  'Politics',
-  'Opinion',
-  'Science',
-  'Health',
-  'Style',
-  'Travel',
 ];
 
 const featuredPosts = [
@@ -159,39 +144,9 @@ export default function Blog() {
     <React.Fragment>
       <CssBaseline />
       <Container maxWidth="lg">
-        <Toolbar className={classes.toolbar}>
-          <Button size="small">Subscribe</Button>
-          <Typography
-            component="h2"
-            variant="h5"
-            color="inherit"
-            align="center"
-            noWrap
-            className={classes.toolbarTitle}
-          >
+          <div className="app-logo">
             salarysprout
-          </Typography>
-          <IconButton>
-            <SearchIcon />
-          </IconButton>
-          <Button variant="outlined" size="small">
-            Sign up
-          </Button>
-        </Toolbar>
-        <Toolbar component="nav" variant="dense" className={classes.toolbarSecondary}>
-          {sections.map(section => (
-            <Link
-              color="inherit"
-              noWrap
-              key={section}
-              variant="body2"
-              href="#"
-              className={classes.toolbarLink}
-            >
-              {section}
-            </Link>
-          ))}
-        </Toolbar>
+          </div>
         <main>
           {/* Main featured post */}
           <Paper className={classes.mainFeaturedPost}>
@@ -199,24 +154,15 @@ export default function Blog() {
             {
               <img
                 style={{ display: 'none' }}
-                src="https://source.unsplash.com/user/erondu"
+                src="https://unsplash.com/photos/dZxQn4VEv2M"
                 alt="background"
               />
             }
-            <div className={classes.overlay} />
-            <Grid container>
-              <Grid item md={6}>
-                <div className={classes.mainFeaturedPostContent}>
-                  <Typography component="h1" variant="h3" color="inherit" gutterBottom>
-                    Title of a longer featured blog post
-                  </Typography>
-                  <Typography variant="h5" color="inherit" paragraph>
-                    Multiple lines of text that form the lede, informing new readers quickly and
-                    efficiently about what&apos;s most interesting in this post&apos;s contents.
-                  </Typography>
-                  <Link variant="subtitle1" href="#">
-                    Continue reading…
-                  </Link>
+            <div />
+            <Grid container className="app-intro">
+              <Grid md={6} >
+                <div className='app-slogan'>
+                    Bla bla bla slogan keep up champion equality
                 </div>
               </Grid>
             </Grid>
@@ -247,7 +193,7 @@ export default function Blog() {
                     <Hidden xsDown>
                       <CardMedia
                         className={classes.cardMedia}
-                        image="https://source.unsplash.com/random"
+                        image="https://unsplash.com/photos/dZxQn4VEv2M"
                         title="Image title"
                       />
                     </Hidden>

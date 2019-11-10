@@ -1,0 +1,32 @@
+@import url('https://fonts.googleapis.com/css?family=Rubik+Montserrat:400,400i,700&display=swap');
+
+body {
+    font-family: "Rubik", "Helvetica", "Arial", sans-serif;
+}
+
+.app-intro {
+    width: 100%;
+    padding: 3em 6em;
+    min-height: 400px;
+    background-image: url("../components/background.jpg");
+    background-size: cover;
+    background-position-y: 50%;
+    background-repeat: no-repeat;
+}
+
+.app-logo {
+    color: forestgreen;
+    font-family: 'Montserrat', 'Roboto', sans-serif;
+    font-size: 2em;
+    text-align: center;
+    width: 100%;
+    font-weight: 400;
+    letter-spacing: 1px;
+    padding: 1em 0 0.5em;
+}
+
+.app-slogan {
+    color: white !important;
+    font-size: 3em;
+    line-height: 1.5;
+}
